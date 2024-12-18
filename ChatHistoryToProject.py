@@ -8,6 +8,10 @@ def strip_and_split_json(input_file, output_directory, max_parts):
     with open(input_file, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
+    if not data:
+        print(f"The input file {input_file} is empty. No output will be created.")
+        return
+
     def process_mapping(mapping):
         stripped_mapping = {}
         for key, value in mapping.items():
@@ -20,6 +24,7 @@ def strip_and_split_json(input_file, output_directory, max_parts):
                     "content": content_parts,
                     "author": value["message"]["author"]["role"]
                 }
+        print(f"Processed mapping with {len(stripped_mapping)} items.")
         return stripped_mapping
 
     stripped_data = []
@@ -41,10 +46,11 @@ def strip_and_split_json(input_file, output_directory, max_parts):
         chat_size = len(serialized_chat.encode('utf-8'))
 
         if current_part_size + chat_size > max_file_size_bytes:
-            write_part_to_file(current_part, output_directory, part_number)
-            part_number += 1
-            current_part = []
-            current_part_size = 0
+            if current_part:
+                write_part_to_file(current_part, output_directory, part_number)
+                part_number += 1
+                current_part = []
+                current_part_size = 0
 
         current_part.append(chat)
         current_part_size += chat_size
@@ -55,12 +61,16 @@ def strip_and_split_json(input_file, output_directory, max_parts):
     print("JSON file stripped and split successfully.")
 
 def write_part_to_file(part_data, output_directory, part_number):
+    if not part_data:
+        print(f"Part {part_number} is empty, skipping write.")
+        return
+    print(f"Writing part {part_number} with {len(part_data)} chats.")
     output_path = os.path.join(output_directory, f"part_{part_number}.json")
     with open(output_path, 'w', encoding='utf-8') as output_file:
         json.dump(part_data, output_file, indent=4, ensure_ascii=False)
     print(f"Written part {part_number} to {output_path}")
 
-# Example usage
+
 if __name__ == "__main__":
     input_file = os.path.join(os.path.dirname(__file__), "conversations.json")  # Input JSON in the same folder as the script
     output_directory = os.path.join(os.path.dirname(__file__), "Output")        # Output folder in the same location as the script
