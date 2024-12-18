@@ -49,5 +49,11 @@ The new ChatGPT Projects feature allows you to upload up to 20 files for advance
 
 ---
 
+## 🌍 Contributions Welcome!
+
+I welcome contributions to improve ChatHistoryToProject. If you have ideas, encounter issues, or want to enhance the tool, feel free to open a pull request or submit an issue on the GitHub repository. Collaboration helps make this tool better for everyone!
+
+---
+
 Happy Chatting with Projects! 🚀
 
