@@ -1,0 +1,64 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Require a tag on main
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - name: Verify tag matches package version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python - <<'PY'
+          import os
+          import tomllib
+
+          with open("pyproject.toml", "rb") as file:
+              version = tomllib.load(file)["project"]["version"]
+          expected_tag = f"v{version}"
+          actual_tag = os.environ["RELEASE_TAG"]
+          if actual_tag != expected_tag:
+              raise SystemExit(
+                  f"Tag {actual_tag!r} does not match package version {expected_tag!r}"
+              )
+          PY
+      - name: Install build and test tools
+        run: python -m pip install build "ruff>=0.8,<1" -e .
+      - name: Run checks
+        run: |
+          ruff check .
+          ruff format --check .
+          python -m unittest discover -s tests -v
+      - name: Build distributable package
+        run: python -m build --sdist --wheel
+      - name: Smoke test built wheel
+        run: |
+          python -m pip install --force-reinstall dist/*.whl
+          chat-history-to-project --help
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/*.whl dist/*.tar.gz \
+            --verify-tag --generate-notes --title "$GITHUB_REF_NAME"
