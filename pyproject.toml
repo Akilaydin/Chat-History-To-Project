@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chat-history-to-project"
+version = "1.0.0"
+description = "Prepare a ChatGPT data export for use as ChatGPT Project files."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Akilaydin" }]
+dependencies = [
+    "tiktoken>=0.14,<1",
+]
+
+[project.urls]
+Repository = "https://github.com/Akilaydin/Chat-History-To-Project"
+Issues = "https://github.com/Akilaydin/Chat-History-To-Project/issues"
+
+[project.scripts]
+chat-history-to-project = "chat_history_to_project.cli:main"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.8,<1",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

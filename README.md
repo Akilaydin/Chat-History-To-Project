@@ -1,59 +1,84 @@
-# ChatHistoryToProject - Add all your chat history to ChatGPT's Project
+# Chat History To Project
 
-**ChatHistoryToProject** is a streamlined tool designed to simplify the process of preparing your OpenAI chat history for use with ChatGPT’s Projects feature. By stripping unnecessary details and splitting data into smaller, manageable files, ChatHistoryToProject ensures your chat history is ready for seamless integration.
+Prepare an exported ChatGPT conversation history for use as files in a ChatGPT Project.
 
----
+The tool runs locally, accepts the official ChatGPT export as a ZIP, directory, or conversation JSON file, and writes upload-ready JSON parts.
 
-## ✨ Features
+## Documentation
 
-- **Efficient Data Cleaning**: Removes metadata and extraneous fields, keeping only essential conversation content.
-- **Automated Splitting**: Divides large JSON files into up to 20 smaller files to comply with ChatGPT’s file upload limits.
-- **Plug-and-Play Simplicity**: Operates directly within the folder containing your exported chat data, no additional configuration required.
+- [`PRODUCT.md`](PRODUCT.md) — product scope, supported inputs, CLI behavior and output rules.
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) — technical architecture, module boundaries and accepted technical decisions.
+- [`AGENTS.md`](AGENTS.md) — instructions for coding agents working in this repository.
 
----
+## Prerequisites
 
-## 🛠 Prerequisites
+- Python 3.10+
+- `pipx`, `pip`, or `uv`
 
-1. **Python**: Ensure Python 3.7 or higher is installed on your system.
+## Installation
 
----
+With `pipx`:
 
-## 🚀 How to Use
+```bash
+pipx install git+https://github.com/Akilaydin/Chat-History-To-Project.git
+```
 
-### 1. Export Your OpenAI Chat History
-   - Navigate to your ChatGPT account settings and export your chat data. (Settings -> Data Controls -> Export Data)
-   - Extract the downloaded ZIP file into a folder, ensuring the `conversations.json` file is present.
+If the pipx tools directory is not yet in `PATH`:
 
-### 2. Set Up the Script
-   - Download the `ChatHistoryToProject` script.
-   - Place the script in the same folder as `conversations.json`.
+```bash
+pipx ensurepath
+```
 
-### 3. Run the Script
-   - Open a terminal or command prompt.
-   - Navigate to the folder containing the script and `conversations.json`.
-   - Execute the following command:
-     ```
-     python ChatHistoryToProject.py
-     ```
+With `uv`:
 
-### 4. Review the Output
-   - The script creates an `Output` folder in the same directory.
-   - Up to 20 JSON files (`part_1.json`, `part_2.json`, etc.) will be generated, ready to upload to your ChatGPT Project.
+```bash
+uv tool install git+https://github.com/Akilaydin/Chat-History-To-Project.git
+```
 
+For a reproducible installation of a published version, select its Git tag:
 
----
+```bash
+uv tool install git+https://github.com/Akilaydin/Chat-History-To-Project.git@v1.0.0
+```
 
-## 🤔 Why Use ChatHistoryToProject?
+If the uv tools directory is not yet in `PATH`:
 
-The new ChatGPT Projects feature allows you to upload up to 20 files for advanced analysis and interaction. If you upload all your chat history to the Project and then start to chat with it, it will enchance your working experience as ChatGPT will know **everything** you discussed
+```bash
+uv tool update-shell
+```
 
----
+## Usage
 
-## 🌍 Contributions Welcome!
+```bash
+chat-history-to-project chatgpt-export.zip
+```
 
-I welcome contributions to improve ChatHistoryToProject. If you have ideas, encounter issues, or want to enhance the tool, feel free to open a pull request or submit an issue on the GitHub repository. Collaboration helps make this tool better for everyone!
+Run `chat-history-to-project --help` for all options.
 
----
+From a clone:
 
-Happy Chatting with Projects! 🚀
+```bash
+uv sync
+uv run chat-history-to-project path/to/export.zip
+```
+
+The thin legacy launcher can also be used:
+
+```bash
+python run.py path/to/export.zip
+```
+
+## Configuration
+
+No secrets, API keys, or external services are required.
+
+The default ChatGPT plan preset is `plus`. Other plan presets and explicit file limits are CLI options; see `PRODUCT.md`.
+
+## Development and releases
+
+GitHub Actions runs Ruff, unit tests on Python 3.10–3.14, and a package-build smoke test for PRs into `main`. Changes are reviewed and merged through pull requests.
+
+After `main` passes CI, an explicitly pushed tag matching the version in `pyproject.toml` (for example, `v1.0.0`) triggers the release workflow. It validates the tag is reachable from `main`, repeats checks, builds the source distribution and wheel, and publishes both as a GitHub Release. Releases are not created automatically by merging PRs.
+
+The project is installed directly from GitHub; publishing to PyPI is not configured.
 
