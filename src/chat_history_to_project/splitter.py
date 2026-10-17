@@ -19,13 +19,6 @@ class _Record:
     bytes: int
 
 
-@dataclass
-class _Bin:
-    entries: list[tuple[int, _Record]]
-    tokens: int
-    bytes: int
-
-
 def split_conversations(
     conversations: Iterable[Conversation],
     *,
@@ -95,102 +88,13 @@ def split_conversations(
         )
 
     if len(exact_parts) > max_files:
-        packed = _pack_best_fit(
-            records,
-            counter=token_counter,
-            max_files=max_files,
-            max_tokens=max_tokens_per_file,
-            max_bytes=max_bytes_per_file,
-        )
-        if packed is not None:
-            exact_parts = []
-            for part in packed:
-                exact_parts.extend(
-                    _split_part_exactly(
-                        part,
-                        counter=token_counter,
-                        max_tokens=max_tokens_per_file,
-                        max_bytes=max_bytes_per_file,
-                    )
-                )
-
-    if len(exact_parts) > max_files:
         raise SplitLimitError(
             f"The selected history requires {len(exact_parts)} files, but the configured limit is "
-            f"{max_files}. Use filters, choose a plan with a larger limit, or override --max-files."
+            f"{max_files}. Output order cannot be changed to fit more data. "
+            "Use filters, choose a plan with a larger limit, or override --max-files."
         )
 
     return [[record.data for record in part] for part in exact_parts]
-
-
-def _pack_best_fit(
-    records: list[_Record],
-    *,
-    counter: Counter,
-    max_files: int,
-    max_tokens: int,
-    max_bytes: int,
-) -> list[list[_Record]] | None:
-    overhead_tokens = _array_token_overhead(counter)
-    separator_tokens = counter.count_text(",")
-    bins: list[_Bin] = []
-    indexed_records = list(enumerate(records))
-    indexed_records.sort(
-        key=lambda item: max(
-            item[1].tokens / max_tokens,
-            item[1].bytes / max_bytes,
-        ),
-        reverse=True,
-    )
-
-    for sequence, record in indexed_records:
-        best_index: int | None = None
-        best_score: float | None = None
-
-        for index, bin_state in enumerate(bins):
-            extra_tokens = record.tokens + (separator_tokens if bin_state.entries else 0)
-            extra_bytes = record.bytes + (1 if bin_state.entries else 0)
-            new_tokens = bin_state.tokens + extra_tokens
-            new_bytes = bin_state.bytes + extra_bytes
-            if new_tokens > max_tokens or new_bytes > max_bytes:
-                continue
-
-            score = max(
-                (max_tokens - new_tokens) / max_tokens,
-                (max_bytes - new_bytes) / max_bytes,
-            )
-            if best_score is None or score < best_score:
-                best_index = index
-                best_score = score
-
-        if best_index is None:
-            if len(bins) >= max_files:
-                return None
-            bins.append(
-                _Bin(
-                    entries=[(sequence, record)],
-                    tokens=overhead_tokens + record.tokens,
-                    bytes=2 + record.bytes,
-                )
-            )
-            continue
-
-        selected = bins[best_index]
-        selected.tokens += record.tokens + (separator_tokens if selected.entries else 0)
-        selected.bytes += record.bytes + (1 if selected.entries else 0)
-        selected.entries.append((sequence, record))
-
-    bins.sort(key=lambda bin_state: min(sequence for sequence, _ in bin_state.entries))
-    return [
-        [
-            record
-            for _, record in sorted(
-                bin_state.entries,
-                key=lambda entry: entry[0],
-            )
-        ]
-        for bin_state in bins
-    ]
 
 
 def _conversation_records(

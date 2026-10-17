@@ -32,6 +32,7 @@
 - File-count limits are hard constraints, not targets.
 - Per-file token and byte limits are checked against the final serialized JSON payload.
 - Large conversations may be split only at message boundaries.
+- Records and fragments retain their global input order across output files. Packing optimizations cannot reorder them to satisfy a file-count limit.
 - Token counting uses tiktoken with `o200k_base`; the default 1.9M-token limit intentionally leaves margin below the documented ChatGPT limit.
 
 ### Quality

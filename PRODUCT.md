@@ -123,6 +123,7 @@ The example is formatted for readability; generated files use compact JSON on on
 
 - A single text part is stored as a string. Multiple parts, audio and images remain ordered arrays with their original content objects.
 - The role and the exact text/multimodal part data are preserved. No messages are summarized, merged, or rewritten.
+- Records retain their original order across output files. The tool fails if the file limit cannot be met without rearranging conversation fragments.
 - Export-only graph metadata (`id`, `parent`, `children`) is used to find the visible conversation branch but is not needed in the output.
 - Conversation and message timestamps are used for filtering but are not included in output files.
 
